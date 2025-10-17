@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Login - LMS{% endblock %}
+
+{% block auth_content %}
+<div class="auth-container">
+    <h2 class="text-center mb-4">Login to LMS</h2>
+    <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+            <div class="invalid-feedback">Please enter a valid email address.</div>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+            <div class="invalid-feedback">Password is required.</div>
+        </div>
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Login</button>
+        </div>
+    </form>
+    <div class="mt-3 text-center">
+        <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+        <p class="mt-2">Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('loginForm');
+        
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+            
+            // Validate email
+            const email = document.getElementById('email');
+            if (!email.value || !isValidEmail(email.value)) {
+                email.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                email.classList.remove('is-invalid');
+            }
+            
+            // Validate password
+            const password = document.getElementById('password');
+            if (!password.value) {
+                password.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                password.classList.remove('is-invalid');
+            }
+            
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+        
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+    });
+</script>
+{% endblock %}

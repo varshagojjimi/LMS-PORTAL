@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Billing & Payments</h2>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Payment History</h4>
+                </div>
+                <div class="card-body">
+                    {% if payments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.date }}</td>
+                                    <td>{{ payment.description }}</td>
+                                    <td>${{ payment.amount }}</td>
+                                    <td>
+                                        {% if payment.status == "completed" %}
+                                        <span class="badge bg-success">Completed</span>
+                                        {% elif payment.status == "pending" %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No payment history available.</div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4>Upcoming Payments</h4>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_payments %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Due Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for payment in upcoming_payments %}
+                                <tr>
+                                    <td>{{ payment.due_date }}</td>
+                                    <td>{{ payment.description }}</td>
+                                    <td>${{ payment.amount }}</td>
+                                    <td>
+                                        <a href="#" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#paymentModal" 
+                                           data-id="{{ payment._id }}" 
+                                           data-description="{{ payment.description }}" 
+                                           data-amount="{{ payment.amount }}">
+                                            Pay Now
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">No upcoming payments due.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Payment Summary</h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Total Paid:</span>
+                        <strong>${{ total_paid }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Pending Payments:</span>
+                        <strong>${{ pending_amount }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <span>Current Balance:</span>
+                        <strong class="{% if balance > 0 %}text-danger{% else %}text-success{% endif %}">
+                            ${{ balance }}
+                        </strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h4>Payment Methods</h4>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% if payment_methods %}
+                            {% for method in payment_methods %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    {% if method.type == "card" %}
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    {% else %}
+                                    <i class="fas fa-university me-2"></i>
+                                    {% endif %}
+                                    {{ method.name }}
+                                </div>
+                                <div>
+                                    <a href="#" class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">No payment methods added.</div>
+                        {% endif %}
+                        <div class="mt-3">
+                            <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addPaymentMethodModal">
+                                <i class="fas fa-plus"></i> Add Payment Method
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="paymentModalLabel">Complete Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('process_payment') }}">
+                    <input type="hidden" id="payment_id" name="payment_id">
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <input type="text" class="form-control" id="payment_description" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="text" class="form-control" id="payment_amount" readonly>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="payment_method" class="form-label">Payment Method</label>
+                        <select class="form-select" id="payment_method" name="payment_method" required>
+                            <option value="" selected disabled>Select payment method</option>
+                            {% if payment_methods %}
+                                {% for method in payment_methods %}
+                                <option value="{{ method._id }}">{{ method.name }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Complete Payment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Payment Method Modal -->
+<div class="modal fade" id="addPaymentMethodModal" tabindex="-1" aria-labelledby="addPaymentMethodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addPaymentMethodModalLabel">Add Payment Method</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('add_payment_method') }}">
+                    <div class="mb-3">
+                        <label for="method_type" class="form-label">Payment Type</label>
+                        <select class="form-select" id="method_type" name="method_type" required>
+                            <option value="card">Credit/Debit Card</option>
+                            <option value="bank">Bank Account</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Card Details (shown when card is selected) -->
+                    <div id="card_details">
+                        <div class="mb-3">
+                            <label for="card_name" class="form-label">Name on Card</label>
+                            <input type="text" class="form-control" id="card_name" name="card_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="card_number" class="form-label">Card Number</label>
+                            <input type="text" class="form-control" id="card_number" name="card_number" placeholder="XXXX XXXX XXXX XXXX">
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiry_date" class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" id="expiry_date" name="expiry_date" placeholder="MM/YY">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label">CVV</label>
+                                <input type="text" class="form-control" id="cvv" name="cvv" placeholder="XXX">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bank Details (hidden by default) -->
+                    <div id="bank_details" style="display: none;">
+                        <div class="mb-3">
+                            <label for="account_name" class="form-label">Account Holder Name</label>
+                            <input type="text" class="form-control" id="account_name" name="account_name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="account_number" class="form-label">Account Number</label>
+                            <input type="text" class="form-control" id="account_number" name="account_number">
+                        </div>
+                        <div class="mb-3">
+                            <label for="routing_number" class="form-label">Routing Number</label>
+                            <input type="text" class="form-control" id="routing_number" name="routing_number">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">Save Payment Method</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Toggle payment method details
+    document.getElementById('method_type').addEventListener('change', function() {
+        if (this.value === 'card') {
+            document.getElementById('card_details').style.display = 'block';
+            document.getElementById('bank_details').style.display = 'none';
+        } else {
+            document.getElementById('card_details').style.display = 'none';
+            document.getElementById('bank_details').style.display = 'block';
+        }
+    });
+    
+    // Set payment details in modal
+    document.getElementById('paymentModal').addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var id = button.getAttribute('data-id');
+        var description = button.getAttribute('data-description');
+        var amount = button.getAttribute('data-amount');
+        
+        document.getElementById('payment_id').value = id;
+        document.getElementById('payment_description').value = description;
+        document.getElementById('payment_amount').value = amount;
+    });
+</script>
+{% endblock %}

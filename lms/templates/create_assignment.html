@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Create Assignment - LMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Create Assignment</h1>
+
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-plus me-2"></i> New Assignment
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('create_assignment') }}">
+                <div class="mb-3">
+                    <label for="title" class="form-label">Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="due_date" class="form-label">Due Date</label>
+                    <input type="date" class="form-control" id="due_date" name="due_date" required>
+                </div>
+                <!-- Assignments will be assigned to all students automatically -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

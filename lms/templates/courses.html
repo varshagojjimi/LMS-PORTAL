@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Course Catalog</h2>
+    
+    {% if role == "teacher" %}
+    <div class="mb-4">
+        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCourseModal">
+            <i class="fas fa-plus"></i> Add New Course
+        </a>
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        {% if courses %}
+            {% for course in courses %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">{{ course.title }}</h5>
+                        {% if course.is_paid %}
+                        <span class="badge bg-warning">Premium</span>
+                        {% else %}
+                        <span class="badge bg-success">Free</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Instructor:</strong> {{ course.instructor_name }}</p>
+                        <p>{{ course.description }}</p>
+                        <p><i class="fas fa-clock"></i> {{ course.duration }}</p>
+                        {% if course.is_paid %}
+                        <p><strong>Price:</strong> ${{ course.price }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        {% if role == "student" %}
+                            {% if course._id in enrolled_ids %}
+                            <a href="#" class="btn btn-success w-100 mb-2">
+                                <i class="fas fa-check-circle"></i> Enrolled
+                            </a>
+                            {% else %}
+                            <a href="{{ url_for('enroll_course', course_id=course._id) }}" class="btn btn-primary w-100 mb-2">
+                                <i class="fas fa-sign-in-alt"></i> Enroll Now
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('quizzes') }}?course_id={{ course._id }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-question-circle"></i> View Quizzes
+                            </a>
+                        {% else %}
+                            {% if course.instructor_id == session.get('user_id') %}
+                            <div class="d-flex flex-column gap-2">
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-info w-50" data-bs-toggle="modal" data-bs-target="#editCourseModal{{ course._id }}">
+                                        <i class="fas fa-edit"></i> Manage
+                                    </button>
+                                    <form method="post" action="{{ url_for('delete_course', course_id=course._id) }}" class="w-50" onsubmit="return confirm('Delete this course?');">
+                                        <button type="submit" class="btn btn-danger w-100">
+                                            <i class="fas fa-trash"></i> Delete
+                                        </button>
+                                    </form>
+                                </div>
+                                <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addQuizForCourse{{ course._id }}">
+                                    <i class="fas fa-plus"></i> Add Quiz
+                                </button>
+                                <a href="{{ url_for('quizzes') }}?course_id={{ course._id }}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-question-circle"></i> View Quizzes
+                                </a>
+                            </div>
+                            {% else %}
+                            <span class="badge bg-secondary w-100 mb-2">Owned by {{ course.instructor_name }}</span>
+                            <a href="{{ url_for('quizzes') }}?course_id={{ course._id }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-question-circle"></i> View Quizzes
+                            </a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No courses available at the moment.
+                {% if role == "teacher" %}
+                <a href="#" data-bs-toggle="modal" data-bs-target="#addCourseModal">Add your first course</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Course Modal for Teachers -->
+{% if role == "teacher" %}
+<div class="modal fade" id="addCourseModal" tabindex="-1" aria-labelledby="addCourseModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCourseModalLabel">Add New Course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('add_course') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Course Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="duration" class="form-label">Duration</label>
+                        <input type="text" class="form-control" id="duration" name="duration" placeholder="e.g. 8 weeks" required>
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="is_paid" name="is_paid">
+                        <label class="form-check-label" for="is_paid">Premium Course</label>
+                    </div>
+                    <div class="mb-3" id="price-field" style="display: none;">
+                        <label for="price" class="form-label">Price ($)</label>
+                        <input type="number" class="form-control" id="price" name="price" min="0" step="0.01">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('is_paid').addEventListener('change', function() {
+        document.getElementById('price-field').style.display = this.checked ? 'block' : 'none';
+    });
+</script>
+{% endif %}
+
+{% if role == "teacher" and courses %}
+    {% for course in courses %}
+    {% if course.instructor_id == session.get('user_id') %}
+    <!-- Edit Course Modal: unique per course -->
+    <div class="modal fade" id="editCourseModal{{ course._id }}" tabindex="-1" aria-labelledby="editCourseModalLabel{{ course._id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCourseModalLabel{{ course._id }}">Manage Course</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ url_for('edit_course', course_id=course._id) }}">
+                        <div class="mb-3">
+                            <label for="title{{ course._id }}" class="form-label">Course Title</label>
+                            <input type="text" class="form-control" id="title{{ course._id }}" name="title" value="{{ course.title }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="description{{ course._id }}" class="form-label">Description</label>
+                            <textarea class="form-control" id="description{{ course._id }}" name="description" rows="3" required>{{ course.description }}</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="duration{{ course._id }}" class="form-label">Duration</label>
+                            <input type="text" class="form-control" id="duration{{ course._id }}" name="duration" value="{{ course.duration }}" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="is_paid{{ course._id }}" name="is_paid" {% if course.is_paid %}checked{% endif %}>
+                            <label class="form-check-label" for="is_paid{{ course._id }}">Premium Course</label>
+                        </div>
+                        <div class="mb-3 {% if not course.is_paid %}d-none{% endif %}" id="price-field-{{ course._id }}">
+                            <label for="price{{ course._id }}" class="form-label">Price ($)</label>
+                            <input type="number" class="form-control" id="price{{ course._id }}" name="price" min="0" step="0.01" value="{{ course.price if course.price else 0 }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('is_paid{{ course._id }}').addEventListener('change', function() {
+            document.getElementById('price-field-{{ course._id }}').classList.toggle('d-none', !this.checked);
+        });
+    </script>
+    <!-- Add Quiz Modal for this Course -->
+    <div class="modal fade" id="addQuizForCourse{{ course._id }}" tabindex="-1" aria-labelledby="addQuizForCourseLabel{{ course._id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addQuizForCourseLabel{{ course._id }}">Add Quiz to {{ course.title }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{{ url_for('add_quiz') }}">
+                        <input type="hidden" name="course_id" value="{{ course._id }}">
+                        <div class="mb-3">
+                            <label for="qtitle{{ course._id }}" class="form-label">Quiz Title</label>
+                            <input type="text" class="form-control" id="qtitle{{ course._id }}" name="title" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qdesc{{ course._id }}" class="form-label">Description</label>
+                            <textarea class="form-control" id="qdesc{{ course._id }}" name="description" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qdifficulty{{ course._id }}" class="form-label">Difficulty</label>
+                            <select class="form-select" id="qdifficulty{{ course._id }}" name="difficulty" required>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qcount{{ course._id }}" class="form-label">Questions</label>
+                            <input type="number" class="form-control" id="qcount{{ course._id }}" name="question_count" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qlimit{{ course._id }}" class="form-label">Time Limit (minutes)</label>
+                            <input type="number" class="form-control" id="qlimit{{ course._id }}" name="time_limit" min="1" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="qpoints{{ course._id }}" class="form-label">Points</label>
+                            <input type="number" class="form-control" id="qpoints{{ course._id }}" name="points" min="1" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Quiz</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+{% endif %}
+{% endblock %}

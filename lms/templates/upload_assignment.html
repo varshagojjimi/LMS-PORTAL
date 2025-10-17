@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Assignment - LMS{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Upload Assignment</h1>
+    
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-upload me-2"></i> Submit Your Assignment
+        </div>
+        <div class="card-body">
+            <form id="uploadForm" method="POST" action="{{ url_for('upload_assignment') }}" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <label for="assignment_id" class="form-label">Select Assignment</label>
+                    <select class="form-select" id="assignment_id" name="assignment_id" required>
+                        <option value="" selected disabled>Choose an assignment</option>
+                        {% for assignment in assignments %}
+                        <option value="{{ assignment._id }}" {% if request.args.get('id') == assignment._id|string %}selected{% endif %}>
+                            {{ assignment.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="file" class="form-label">Assignment File</label>
+                    <input class="form-control" type="file" id="file" name="file" required>
+                    <div class="form-text">Upload your completed assignment file (PDF, DOC, DOCX, ZIP).</div>
+                </div>
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Comments (Optional)</label>
+                    <textarea class="form-control" id="comments" name="comments" rows="3"></textarea>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Submit Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('uploadForm');
+        
+        form.addEventListener('submit', function(event) {
+            let isValid = true;
+            
+            // Validate assignment selection
+            const assignmentId = document.getElementById('assignment_id');
+            if (!assignmentId.value) {
+                assignmentId.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                assignmentId.classList.remove('is-invalid');
+            }
+            
+            // Validate file upload
+            const file = document.getElementById('file');
+            if (!file.files || file.files.length === 0) {
+                file.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                // Check file type
+                const fileName = file.files[0].name;
+                const fileExt = fileName.split('.').pop().toLowerCase();
+                const allowedExts = ['pdf', 'doc', 'docx', 'zip'];
+                
+                if (!allowedExts.includes(fileExt)) {
+                    file.classList.add('is-invalid');
+                    alert('Please upload a valid file type (PDF, DOC, DOCX, ZIP)');
+                    isValid = false;
+                } else {
+                    file.classList.remove('is-invalid');
+                }
+            }
+            
+            if (!isValid) {
+                event.preventDefault();
+            }
+        });
+    });
+</script>
+{% endblock %}

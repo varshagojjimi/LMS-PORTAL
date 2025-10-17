@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Grades</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="gradesTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="courses-tab" data-bs-toggle="tab" data-bs-target="#courses" type="button" role="tab" aria-controls="courses" aria-selected="true">Courses</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="quizzes-tab" data-bs-toggle="tab" data-bs-target="#quizzes" type="button" role="tab" aria-controls="quizzes" aria-selected="false">Quizzes</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="assignments-tab" data-bs-toggle="tab" data-bs-target="#assignments" type="button" role="tab" aria-controls="assignments" aria-selected="false">Assignments</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="gradesTabContent">
+                <!-- Courses Tab -->
+                <div class="tab-pane fade show active" id="courses" role="tabpanel" aria-labelledby="courses-tab">
+                    {% if course_grades %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Course</th>
+                                    <th>Instructor</th>
+                                    <th>Overall Grade</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in course_grades %}
+                                <tr>
+                                    <td>{{ grade.course_title }}</td>
+                                    <td>{{ grade.instructor_name }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if grade.overall_grade >= 90 %}bg-success
+                                                {% elif grade.overall_grade >= 70 %}bg-info
+                                                {% elif grade.overall_grade >= 60 %}bg-warning
+                                                {% else %}bg-danger{% endif %}" 
+                                                role="progressbar" style="width: {{ grade.overall_grade }}%;" 
+                                                aria-valuenow="{{ grade.overall_grade }}" aria-valuemin="0" aria-valuemax="100">
+                                                {{ grade.overall_grade }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if grade.overall_grade >= 90 %}
+                                            <span class="badge bg-success">Excellent</span>
+                                        {% elif grade.overall_grade >= 80 %}
+                                            <span class="badge bg-primary">Very Good</span>
+                                        {% elif grade.overall_grade >= 70 %}
+                                            <span class="badge bg-info">Good</span>
+                                        {% elif grade.overall_grade >= 60 %}
+                                            <span class="badge bg-warning">Satisfactory</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Needs Improvement</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No course grades available yet.</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Quizzes Tab -->
+                <div class="tab-pane fade" id="quizzes" role="tabpanel" aria-labelledby="quizzes-tab">
+                    {% if quiz_grades %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Quiz</th>
+                                    <th>Course</th>
+                                    <th>Difficulty</th>
+                                    <th>Score</th>
+                                    <th>Points Earned</th>
+                                    <th>Date Taken</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in quiz_grades %}
+                                <tr>
+                                    <td>{{ grade.quiz_title }}</td>
+                                    <td>{{ grade.course_title }}</td>
+                                    <td>
+                                        {% if grade.difficulty == "easy" %}
+                                            <span class="badge bg-success">Easy</span>
+                                        {% elif grade.difficulty == "medium" %}
+                                            <span class="badge bg-warning">Medium</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Hard</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ grade.score }}%</td>
+                                    <td>{{ grade.points_earned }} / {{ grade.total_points }}</td>
+                                    <td>{{ grade.date_taken }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No quiz grades available yet.</div>
+                    {% endif %}
+                </div>
+                
+                <!-- Assignments Tab -->
+                <div class="tab-pane fade" id="assignments" role="tabpanel" aria-labelledby="assignments-tab">
+                    {% if assignment_grades %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Assignment</th>
+                                    <th>Course</th>
+                                    <th>Grade</th>
+                                    <th>Feedback</th>
+                                    <th>Submission Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for grade in assignment_grades %}
+                                <tr>
+                                    <td>{{ grade.assignment_title }}</td>
+                                    <td>{{ grade.course_title }}</td>
+                                    <td>
+                                        {% if grade.grade %}
+                                            {{ grade.grade }}%
+                                        {% else %}
+                                            <span class="badge bg-secondary">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ grade.feedback if grade.feedback else "No feedback yet" }}</td>
+                                    <td>{{ grade.submission_date }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">No assignment grades available yet.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

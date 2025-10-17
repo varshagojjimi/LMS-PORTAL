@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - LMS{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Profile</h4>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <img src="https://img.icons8.com/fluency/150/book.png" class="rounded-circle img-thumbnail" alt="Profile Image">
+                    </div>
+                    <h5>{{ user.name }}</h5>
+                    <p class="text-muted">{{ user.role|capitalize }}</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Personal Information</h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0">Full Name</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ user.name }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0">Email</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ user.email }}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0">Phone</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ user.phone if user.phone else "Not provided" }}
+                        </div>
+                    </div>
+                    {% if user.role == "student" %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0">Roll Number</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ user.roll_no if user.roll_no else "Not assigned" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <h6 class="mb-0">Address</h6>
+                        </div>
+                        <div class="col-sm-9 text-secondary">
+                            {{ user.address if user.address else "Not provided" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.role == "student" %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4>Enrolled Courses</h4>
+                </div>
+                <div class="card-body">
+                    {% if enrolled_courses %}
+                        <div class="list-group">
+                            {% for course in enrolled_courses %}
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">{{ course.title }}</h5>
+                                    {% if course.is_paid %}
+                                    <span class="badge bg-warning">Premium</span>
+                                    {% else %}
+                                    <span class="badge bg-success">Free</span>
+                                    {% endif %}
+                                </div>
+                                <p class="mb-1">{{ course.description }}</p>
+                                <small>Instructor: {{ course.instructor_name }}</small>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            You are not enrolled in any courses yet. 
+                            <a href="{{ url_for('courses') }}">Browse courses</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProfileModalLabel">Edit Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('update_profile') }}">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ user.name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phone" class="form-label">Phone</label>
+                        <input type="tel" class="form-control" id="phone" name="phone" value="{{ user.phone if user.phone }}">
+                    </div>
+                    {% if user.role == "student" %}
+                    <div class="mb-3">
+                        <label for="roll_no" class="form-label">Roll Number</label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no" value="{{ user.roll_no if user.roll_no }}">
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label for="address" class="form-label">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ user.address if user.address }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

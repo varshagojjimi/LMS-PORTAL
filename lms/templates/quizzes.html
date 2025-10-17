@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Quizzes</h2>
+    
+    <ul class="nav nav-tabs mb-4" id="quizTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="easy-tab" data-bs-toggle="tab" data-bs-target="#easy" type="button" role="tab" aria-controls="easy" aria-selected="true">Easy</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="medium-tab" data-bs-toggle="tab" data-bs-target="#medium" type="button" role="tab" aria-controls="medium" aria-selected="false">Medium</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="hard-tab" data-bs-toggle="tab" data-bs-target="#hard" type="button" role="tab" aria-controls="hard" aria-selected="false">Hard</button>
+        </li>
+        {% if role == "teacher" %}
+        <li class="nav-item ms-auto">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addQuizModal">
+                <i class="fas fa-plus"></i> Add Quiz
+            </button>
+        </li>
+        {% endif %}
+    </ul>
+    
+    <div class="tab-content" id="quizTabContent">
+        <!-- Easy Quizzes -->
+        <div class="tab-pane fade show active" id="easy" role="tabpanel" aria-labelledby="easy-tab">
+            <div class="row">
+                {% if easy_quizzes %}
+                    {% for quiz in easy_quizzes %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ quiz.title }}</h5>
+                                <span class="badge bg-success">Easy</span>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ quiz.description }}</p>
+                                <p><i class="fas fa-question-circle"></i> {{ quiz.question_count }} Questions</p>
+                                <p><i class="fas fa-clock"></i> {{ quiz.time_limit }} minutes</p>
+                                <p><i class="fas fa-star"></i> {{ quiz.points }} Points</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('start_quiz', quiz_id=quiz._id) }}" class="btn btn-primary w-100">Start Quiz</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">No easy quizzes available at the moment.</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Medium Quizzes -->
+        <div class="tab-pane fade" id="medium" role="tabpanel" aria-labelledby="medium-tab">
+            <div class="row">
+                {% if medium_quizzes %}
+                    {% for quiz in medium_quizzes %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ quiz.title }}</h5>
+                                <span class="badge bg-warning">Medium</span>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ quiz.description }}</p>
+                                <p><i class="fas fa-question-circle"></i> {{ quiz.question_count }} Questions</p>
+                                <p><i class="fas fa-clock"></i> {{ quiz.time_limit }} minutes</p>
+                                <p><i class="fas fa-star"></i> {{ quiz.points }} Points</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('start_quiz', quiz_id=quiz._id) }}" class="btn btn-primary w-100">Start Quiz</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">No medium quizzes available at the moment.</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Hard Quizzes -->
+        <div class="tab-pane fade" id="hard" role="tabpanel" aria-labelledby="hard-tab">
+            <div class="row">
+                {% if hard_quizzes %}
+                    {% for quiz in hard_quizzes %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ quiz.title }}</h5>
+                                <span class="badge bg-danger">Hard</span>
+                            </div>
+                            <div class="card-body">
+                                <p>{{ quiz.description }}</p>
+                                <p><i class="fas fa-question-circle"></i> {{ quiz.question_count }} Questions</p>
+                                <p><i class="fas fa-clock"></i> {{ quiz.time_limit }} minutes</p>
+                                <p><i class="fas fa-star"></i> {{ quiz.points }} Points</p>
+                            </div>
+                            <div class="card-footer">
+                                <a href="{{ url_for('start_quiz', quiz_id=quiz._id) }}" class="btn btn-primary w-100">Start Quiz</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                <div class="col-12">
+                    <div class="alert alert-info">No hard quizzes available at the moment.</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Quiz Modal for Teachers -->
+{% if role == "teacher" %}
+<div class="modal fade" id="addQuizModal" tabindex="-1" aria-labelledby="addQuizModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addQuizModalLabel">Add New Quiz</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" action="{{ url_for('add_quiz') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Quiz Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="course_id" class="form-label">Course</label>
+                        <select class="form-select" id="course_id" name="course_id" required>
+                            <option value="" disabled selected>Select course</option>
+                            {% if teacher_courses %}
+                                {% for c in teacher_courses %}
+                                <option value="{{ c._id }}">{{ c.title }}</option>
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="difficulty" class="form-label">Difficulty Level</label>
+                        <select class="form-select" id="difficulty" name="difficulty" required>
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="question_count" class="form-label">Number of Questions</label>
+                        <input type="number" class="form-control" id="question_count" name="question_count" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="time_limit" class="form-label">Time Limit (minutes)</label>
+                        <input type="number" class="form-control" id="time_limit" name="time_limit" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="points" class="form-label">Points</label>
+                        <input type="number" class="form-control" id="points" name="points" min="1" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Quiz</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

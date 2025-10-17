@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - LMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mb-4">Dashboard</h1>
+    
+    <div class="row">
+        <!-- Welcome Card -->
+        <div class="col-md-12 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        Welcome, {{ user.name }}!
+                        {% if user.role == 'teacher' %}
+                        <span class="badge bg-primary ms-2">Teacher</span>
+                        {% elif user.role == 'student' %}
+                        <span class="badge bg-secondary ms-2">Student</span>
+                        {% endif %}
+                    </h5>
+                    <p class="card-text">This is your Learning Management System dashboard. Use the sidebar to navigate through different sections.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Announcements -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-bullhorn me-2"></i> Recent Announcements
+                </div>
+                <div class="card-body">
+                    {% if announcements %}
+                        <ul class="list-group list-group-flush">
+                            {% for announcement in announcements %}
+                                <li class="list-group-item">
+                                    <h6>{{ announcement.title }}</h6>
+                                    <p class="mb-1">{{ announcement.content }}</p>
+                                    <small class="text-muted">{{ announcement.date if announcement.date else "No date" }}</small>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        <div class="mt-3">
+                            <a href="{{ url_for('announcements') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No announcements available.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-link me-2"></i> Quick Links
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('profile') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-user me-2"></i> Profile
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('assignments') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-tasks me-2"></i> Assignments
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('attendance') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-calendar-check me-2"></i> Attendance
+                            </a>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <a href="{{ url_for('announcements') }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-bullhorn me-2"></i> Announcements
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
