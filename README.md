@@ -42,7 +42,7 @@ The LMS Portal helps:
 
 - Frontend: HTML, CSS, JavaScript  
 - Backend: Python (Flask)  
-- Database: SQLite / MongoDB (as used in your setup)
+- Database: MongoDB 
 
 
 
